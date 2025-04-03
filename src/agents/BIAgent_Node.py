@@ -5,12 +5,15 @@ This module defines the BI Agent that is responsible for performing exploratory 
 generating Python code to analyze shipment data, creating visualizations, and providing the final answer.
 The agent loads its prompt from the prompt_templates folder.
 """
-
+import openai
+import streamlit as st
 from src.core.bi_functions.bi_function import execute_codes
+from src.core.order_consolidation.dynamic_consolidation import get_parameters_values
 from src.utils.openai_api import get_supervisor_llm
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import HumanMessage
 from langchain.tools import tool
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -76,9 +79,14 @@ class BIAgent_Class:
                 MessagesPlaceholder(variable_name="messages"),
             ]
         )
+        # st.info("Extracting parameters from question...")
+        print("Extracting parameters from question...")
+        extracted_params = get_parameters_values(openai.api_key, question,attempt=0)
+        for k,v in extracted_params.items():
+            print(k,v,sep=" : ")
         result = llm.invoke(prompt_temp.invoke({"data_description": self.data_description,
-                                                "question": question,
-                                                "messages": [HumanMessage(content=question)]}))
+                                                "question": question+f"Use these parameters to filter data: {extracted_params}",
+                                                "messages": [HumanMessage(content=question+"Also, include a single line summary about the parameters in your answer.")]}))
 
         return result
 

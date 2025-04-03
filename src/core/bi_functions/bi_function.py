@@ -57,6 +57,7 @@ def execute_codes(df, response_text):
 
     try:
         # Extract code segments
+        # print("Insights Agent, Response Text\n",response_text)
         segments = extract_code_segments(response_text)
         if not segments:
             print("No code segments found in the response")

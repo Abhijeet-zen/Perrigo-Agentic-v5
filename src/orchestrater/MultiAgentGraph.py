@@ -56,7 +56,19 @@ def get_question(state, supervisor_chain):
         all_msg.append(msg.content)
 
     text = f"""Next agent to be called, use this conversation: {"\n".join(all_msg)} to create a single 
-    line question to be passed next to this agent as a question. Provide your answer in `direct_response`."""
+    line question to be passed next to this agent as a question. Keep track of these parameters while summarising:
+        start_date;
+        end_date;
+        group_method;
+        all_post_code; 
+        all_customers;
+        selected_postcodes; 
+        selected_customers;
+        scenario;
+        shipment_window_range;
+        total_shipment_capacity;
+        utilization_threshold;
+        .Provide your answer in `direct_response`."""
     response = supervisor_chain.invoke([HumanMessage(content=text)])
     print("Inside Get Question; Direct_response\n", response['direct_response'])
     return response

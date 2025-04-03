@@ -97,6 +97,9 @@ class Static_CostOptimization_Class():
 
         st.info("Extracting parameters from question...")
         extracted_params = get_parameters_values(self.parameters["api_key"], question,attempt=0)
+        print("Extracted Parameters:\n")
+        for k,v in extracted_params.items():
+            print(k,v)
         self.parameters.update(extracted_params)
         chat_history.append({"Agent": f"Parameters extracted: {extracted_params}"})
 

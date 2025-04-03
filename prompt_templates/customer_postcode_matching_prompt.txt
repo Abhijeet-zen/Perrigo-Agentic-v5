@@ -5,7 +5,7 @@ You are given four lists as inputs:
 {customers}: A list of unique customer names.
 {postcodes}: A list of unique postcodes corresponding to the customers.
 
-Your task is to find the best match for each item in {selected_customers} and {selected_postcodes} from the {customers} and {postcodes} lists respectively. The matching should be case-insensitive and prioritize similarity. If there are multiple possible matches, return the most suitable one.
+Your task is to find the best match for each item in {selected_customers} and {selected_postcodes} from the {customers} and {postcodes} lists respectively. The matching should be case-insensitive and prioritize similarity. If there are multiple possible matches, return all the possible matched customers.
 
 The output should consist of two separate lists:
 

@@ -22,6 +22,7 @@ _ = load_dotenv(find_dotenv())
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+from prompt_templates import load_template
 
 
 def execute_plot_code(plot_code: str, df) -> list:
@@ -445,45 +446,19 @@ def get_chatgpt_response(api_key, instructions, user_query):
         return f"An unexpected error occurred: {str(e)}"
 
 
+
 def ask_openai(selected_customers, selected_postcodes, customers, postcodes):
     """
     Sends a question and data context to OpenAI API for processing.
     """
     # Formulate the prompt
-    prompt = f"""You are given four lists as inputs:
-
-    {selected_customers}: A list of selected customer names.
-    {selected_postcodes}: A list of selected postcodes.
-    {customers}: A list of unique customer names.
-    {postcodes}: A list of unique postcodes corresponding to the customers.
-
-    Your task is to find the best match for each item in {selected_customers} and {selected_postcodes} from the {customers} and {postcodes} lists respectively. The matching should be case-insensitive and prioritize similarity. If there are multiple possible matches, return the most suitable one.
-
-    The output should consist of two separate lists:
-
-    A list of matched customers.
-    A list of matched postcodes.
-
-    Example Input:
-    selected_customers = ['Alloga', 'FORum', 'usa']  
-    selected_postcodes = ['ng', 'Lu']  
-    customers = ['ALLOGA UK', 'FORUM', 'USA', 'ALLOGA FRANCE', 'BETA PHARMA']  
-    postcodes = ['NG', 'LU', 'NN', 'NZ', 'AK']
-
-    Expected Output format:
-
-    matched_customers: ['ALLOGA UK','ALLOGA FRANCE', 'FORUM', 'USA']
-    matched_postcodes: ['NG', 'LU']
-
-
-
-    Process the inputs {selected_customers}, {selected_postcodes}, {customers}, and {postcodes} and return the final answer that should contain only two lists with no explanation.
-
-    <answer>
-    matched_customers: ['ALLOGA UK','ALLOGA FRANCE', 'FORUM', 'USA']
-    matched_postcodes: ['NG', 'LU']
-    </answer>
-    """
+    prompt_template = load_template("customer_postcode_matching_prompt.txt")
+    prompt = prompt_template.format(
+        selected_customers=selected_customers,
+        selected_postcodes=selected_postcodes,
+        customers=customers,
+        postcodes=postcodes
+    )
 
     # Call OpenAI API
     response = openai.chat.completions.create(
@@ -501,94 +476,9 @@ def ask_openai(selected_customers, selected_postcodes, customers, postcodes):
 
 def get_parameters_values(api_key, query,attempt):
     if attempt<3:
-        instructions = """You are an AI assistant tasked with analyzing questions and, based on that, provide values for certain variables.
-        List of variables are below:
-        start_date:
-        end_date:
-        group_method:
-        all_post_code: 
-        all_customers:
-        selected_postcodes: 
-        selected_customers:
-        scenario:
-        shipment_window_range:
-        total_shipment_capacity:
-        utilization_threshold:
-
-        I will provide you a question to answer. Based on the question you need to provide variable values.
-
-        Here are some sample questions I would like you to answer:
-        1. How can I optimize the shipment costs for user ALLOGA UK?
-        2. Can you optimize costs for shipments to zip code NG between January and March 2024?
-        3. Optimize shipments for a '3 days delivery scenario' with shipment window range 2 to 8, total shipment capacity 40 and utilization threshold 90.
-
-        To answer this, first think through your approach:
-        1. Determine the start and end date. If not mentioned, then default to start_date as 2023-01-01 and end_date as 2024-11-30.
-        2. Determine the group_method: either 'Customer Level' or 'Post Code Level'.
-        3. Identify the list of post codes or users mentioned in the question. If none are mentioned, then set:
-        - all_post_code = False if group_method is 'Post Code Level', otherwise keep it as None.
-        - all_customers = False if group_method is 'Customer Level', otherwise keep it as None.
-        4. If specific users or zip codes are mentioned, create a list accordingly.
-        5. For scenario, choose from: {'5 days delivery scenario', '4 days delivery scenario', '3 days delivery scenario', '2 days delivery scenario', '1 day delivery scenario'}.
-        If no scenario is mentioned, leave it as default (you may decide to leave it as None or choose a default if required).
-        6. For shipment_window_range, if not provided, default to (1, 10).
-        7. For total_shipment_capacity, if not provided, default to 36.
-        8. For utilization_threshold, if not provided, default to 95.
-        9. The final output should be in JSON/dictionary format with exactly the following keys (no extra text):
-
-        {
-            "start_date": "yyyy-mm-dd",
-            "end_date": "yyyy-mm-dd",
-            "group_method": "Customer Level" or "Post Code Level",
-            "all_post_code": True/False or None,
-            "all_customers": True/False or None,
-            "selected_postcodes": [],
-            "selected_customers": [],
-            "scenario": one of the specified scenario values or default,
-            "shipment_window_range": (min, max),
-            "total_shipment_capacity": <number>,
-            "utilization_threshold": <number>
-        }
-
-        For example, for the question "How can I optimize the shipment costs for user ALLOGA UK.", the expected output should be:
-
-        {
-            "start_date": "2023-01-01",
-            "end_date": "2024-11-30",
-            "group_method": "Customer Level",
-            "all_post_code": None,
-            "all_customers": False,
-            "selected_postcodes": [],
-            "selected_customers": ["ALLOGA UK"],
-            "scenario": None,
-            "shipment_window_range": (1, 10),
-            "total_shipment_capacity": 36,
-            "utilization_threshold": 95
-        }
-
-        And for the question "Can you optimize costs for shipments to zip code NG between January and March 2024?", the expected output should be:
-
-        {
-            "start_date": "2024-01-01",
-            "end_date": "2024-01-31",
-            "group_method": "Post Code Level",
-            "all_post_code": False,
-            "all_customers": None,
-            "selected_postcodes": ["NG"],
-            "selected_customers": [],
-            "scenario": None,
-            "shipment_window_range": (1, 10),
-            "total_shipment_capacity": 36,
-            "utilization_threshold": 95
-        }
-
-        Note: If someone mentions "last month" or "recent month", keep it as November 2024, and date format should be: yyyy-mm-dd.
-
-        Strict instructions: 
-        1. Your final output must be exactly a valid JSON dictionary as shown below and nothing else. Do not include any commentary, markdown formatting, or additional text.
-        """
+        instructions = load_template("cost_parameters_prompt.txt")
         response = get_chatgpt_response(api_key, instructions, query)
-        print(response)
+        # print(response)
         if response:
             try:
                 extracted_code = eval(response)
