@@ -522,7 +522,7 @@ def get_parameters_values(api_key, query,attempt):
 
             except Exception as e:
                     attempt+=1
-                    print("Error while extracting params: ",str(e))
+                    st.error(f"Error while extracting params: {str(e)}")
                     get_parameters_values(api_key, query+"\n"+str(e)+"Fix error and Try again.",attempt)
 
     else:
