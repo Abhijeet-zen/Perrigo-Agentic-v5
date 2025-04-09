@@ -841,13 +841,13 @@ def calculate_cost(total_pallets, prod_type, postcode, rate_card):
         # Calculate cost for full batches
         batch_column = "COST PER 52 PALLETS"
         if batch_column in filtered_rate.columns:
-            total_cost += full_batches * filtered_rate[batch_column].values[0]
+            total_cost =  filtered_rate[batch_column].values[0]
 
         # Calculate cost for remaining pallets
         if remaining_pallets > 0:
             remaining_column = f"COST PER {int(remaining_pallets)} PALLET{'S' if remaining_pallets > 1 else ''}"
             if remaining_column in filtered_rate.columns:
-                total_cost += filtered_rate[remaining_column].values[0]
+                total_cost = (total_cost+filtered_rate[remaining_column].values[0])/2
 
     # Return the total cost
     return total_cost if total_cost > 0 else None
